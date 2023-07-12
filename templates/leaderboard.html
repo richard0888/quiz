@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <meta name="leaderboard" content="leaderboard">
+    <link rel="stylesheet" type="text/css" href="assets/style.css">
+    <title>leaderboard</title>
+</head>
+
+<body>
+    <div class="navbar"><a href="quiz.html">quiz</a></div>
+    <div class="content">
+        <h1>Leaderboard</h1>
+        <div id="leaderboard"></div>
+    </div>
+    <script>
+        connect();
+        function connect() {
+            var socket = new WebSocket("ws://" + window.location.hostname + ":{{.Port}}/leaderboard");
+            socket.onclose = () => connect();
+            socket.onerror = () => connect();
+            socket.onmessage = (event) => {
+                switch (JSON.parse(event.data).Type) {
+                    case "connect":
+                        var msg = {
+                            Type: "connect",
+                        };
+                        socket.send(JSON.stringify(msg));
+                        connected = true;
+                        break;
+                    case "user":
+                        var leaderboard = document.querySelector("#leaderboard").getElementsByTagName('p');
+                        for (var i = 0; i < leaderboard.length; i++) {
+                            if (leaderboard[i].id == JSON.parse(event.data).Name) {
+                                leaderboard[i].remove();
+                            }
+                        }
+                        var add_data = document.querySelector("#leaderboard").appendChild(document.createElement("p"));
+                        add_data.innerText = JSON.parse(event.data).Name + ' ' + JSON.parse(event.data).Points.toString();
+                        add_data.id = JSON.parse(event.data).Name;
+                        break;
+                }
+            }
+        }
+        var connected = false;
+        function check() {
+            if (connected == false) connect();
+            connected = false;
+        }
+        setInterval(check, 10000);
+    </script>
+</body>
+
+</html>

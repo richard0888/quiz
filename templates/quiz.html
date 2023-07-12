@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" type="text/css" href="assets/style.css">
+    <title>quiz</title>
+    <style>
+        #store {
+            display: none;
+            position: fixed;
+            top: calc(100% - 50px);
+            left: 0;
+            height: 50px;
+            width: 100%;
+            border: none;
+            background-color: #00ff00;
+            color: #000000;
+        }
+        #points {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="navbar"><a href="leaderboard.html">leaderboard</a></div>
+    <div class="content">
+        <h1>quiz</h1>
+        <p id="name"></p>
+        <p id="points">Points: 0</p>
+        <p id="question">Enter name</p>
+        <input title="input" type="text" id="input"/>
+        <input type="button" value="Enter" id="button"/>
+        <input type = "button" value="store" id="store"/>
+    </div>
+    <script>
+        var STORE_MODE = false, LOGIN_MODE = 2, ANSWER_MODE = 0, QUESTION_MODE = 1;
+        var question = "", answer = "", name = "", points = 0, state = 2, correct = false, socket;
+        connect();
+        function connect() {
+            socket = new WebSocket("ws://" + window.location.hostname + ":{{.Port}}/quiz");
+            socket.onclose = () => connect();
+            socket.onerror = () => connect();
+            socket.onmessage = (event) => {
+                switch (JSON.parse(event.data).Type) {
+                    case "connect":
+                        var msg = {
+                            Type: "connect",
+                        };
+                        socket.send(JSON.stringify(msg));
+                        connected = true;
+                        break;
+                    case "question":
+                        question = JSON.parse(event.data).Question;
+                        if (state == LOGIN_MODE) {
+                            new_question();
+                        }
+                        break;
+                    case "points":
+                        points = JSON.parse(event.data).Points;
+                        break;
+                    case "correct":
+                        correct = JSON.parse(event.data).Correct;
+                        result();
+                        break;
+                }
+            }
+        }
+        var connected = false;
+        function check() {
+            if (connected == false) connect();
+            connected = false;
+        }
+        setInterval(check, 10000);
+        function new_question() {
+            document.getElementById("name").innerText = "Name: " + name;
+            document.getElementById("store").style.display = "block";
+            document.getElementById("question").style.display = "block";
+            document.getElementById("points").style.display = "block";
+            document.getElementById("question").innerText = question;
+            document.getElementById("input").value = "";
+            document.getElementById("input").style.display = "inline";
+            document.getElementById("button").value = "answer";
+            state = ANSWER_MODE;
+        }
+        function answer_question() {
+            answer = document.getElementById("input").value;
+            var msg = {
+                Type: "change",
+                Name: name.trim(),
+                Answer: answer,
+            };
+            socket.send(JSON.stringify(msg));
+        }
+        function result() {
+            document.getElementById("points").innerText = "Points: " + points.toString();
+            document.getElementById("input").style.display = "none";
+            document.getElementById("button").value = "continue";
+            document.getElementById("question").innerText = (correct == true ? "Correct" : "Incorrect");
+            state = QUESTION_MODE;
+        }
+        function login() {
+            name = document.getElementById("input").value;
+            if (name.trim() == "") return;
+            var msg = {
+                Type: "change",
+                Name: name.trim(),
+                Answer: answer,
+            };
+            socket.send(JSON.stringify(msg));
+        }
+        function store() {
+            document.getElementById("points").style.display = "none";
+            document.getElementById("question").style.display = "none";
+            document.getElementById("input").style.display = "none";
+            document.getElementById("button").value 
+
+        }
+        document.getElementById("store").addEventListener("click", () => {
+            STORE_MODE = !STORE_MODE;
+            store();
+        });
+        document.getElementById("button").addEventListener("click", () => {
+            if (state == ANSWER_MODE) answer_question();
+            else if (state == QUESTION_MODE) new_question();
+            else if (state == LOGIN_MODE) login();
+        });
+    </script>
+</body>
+
+</html>

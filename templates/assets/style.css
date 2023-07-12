@@ -1,0 +1,43 @@
+body {
+    overflow: hidden;
+}
+
+.navbar {
+    overflow: hidden;
+    position: fixed;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 50px;
+    background-color: #00ff00;
+}
+
+.content {
+    overflow: scroll;
+    position: fixed;
+    left: 0%;
+    top: 50px;
+    width: calc(100% - 0px);
+    height: calc(100% - 50px);
+}
+
+.navbar a {
+    font-size: 50px;
+    text-decoration: none;
+}
+
+.navbar a:link {
+    color: #000000;
+}
+
+.navbar a:visited {
+    color: #000000;
+}
+
+.navbar a:hover {
+    color: #0000ff;
+}
+
+.navbar a:active {
+    color: #0000ff;
+}
